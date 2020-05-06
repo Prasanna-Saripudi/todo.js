@@ -1,8 +1,6 @@
-let taskList = []
-
 class Task {
-    constructor(name, dueDate, isDone) {
-        this.taskId = Date.now();
+    constructor(taskId, name, dueDate, isDone) {
+        this.taskId = taskId;
         this.name = name;
         this.dueDate = dueDate;
         this.isDone = isDone;
@@ -25,56 +23,94 @@ class Task {
 function render() {
     const listUI = document.getElementById("todolist")
     listUI.innerHTML = "";
-    if (taskList.length === 0) listUI.innerHTML = "No tasks todo :-)"
-    taskList.forEach((task) => {
-        listUI.innerHTML += task.toString();
-    })
+    var req = new XMLHttpRequest();
+    var url = "/api/get";
+    console.log(url);
+    req.open("GET", url);
+    req.send();
+    req.onload = function () {
+        var tasks = JSON.parse(req.responseText);
+        if (req.status === 200) {
+            tasks.forEach((task) => {
+                t = new Task(task.taskId, task.taskName, task.dueDate, task.status)
+                listUI.innerHTML += t.toString();
+            })
+        }
+        else {
+            listUI.innerHTML = "No tasks found.."
+        }
+    }
+
 }
 
 function marked(taskId) {
     console.log("in marked")
-    taskList = taskList.filter(
-        (t) => {
-            if (t.taskId === taskId) {
-                t.isDone = true;
-            }
+    var req = new XMLHttpRequest();
+    var url = "/api/updateStatus?taskId=" + taskId;
+    console.log(url);
+    req.open("GET", url);
+    req.send();
+    req.onload = function () {
+        var msg = JSON.parse(req.responseText);
+        if (msg['status'] === 200) {
+            alert('Updated the status to Done')
         }
-    );
+        else {
+            alert('Not found')
+        }
+    }
 }
 
 function deleteTask(taskId) {
     console.log("in delete")
-    taskList = taskList.filter(
-        (t) => {
-            if (t.taskId != taskId) {
-                console.log(t.name)
-                return t;
-            }
+    console.log(taskId);
+    var req = new XMLHttpRequest();
+    var url = "/api/delete?taskId=" + taskId;
+    console.log(url);
+    req.open("GET", url);
+    req.send();
+    req.onload = function () {
+        var msg = JSON.parse(req.responseText);
+        if (msg['status'] === 200) {
+            render()
         }
-    );
+        else {
+            alert('No record found to delete');
+        }
+    }
     // call a web api to update the database on the server
-
     // update the DOM
-    render()
-    // console.log(taskList);
 }
 
 function createTask() {
     const taskName = document.getElementById("taskName").value;
-    const dueDate = document.getElementById("dueDate").value;
+    const dueDate = document.getElementById("dueDate").value + "";
     if (taskName === "") alert("Can't add an empty task")
     else {
-        addTask(new Task(taskName, dueDate, false));
+        addTask(new Task(Date.now(), taskName, dueDate, false));
         document.getElementById("taskName").value = "";
         document.getElementById("dueDate").value = "dd-mm-yy";
     }
 }
 
 function addTask(t) {
-    taskList.push(t)
+    // taskList.push(t)
+    console.log(t.taskId, t.name, t.dueDate, t.isDone)
+    var req = new XMLHttpRequest();
+    var url = "/api/add?taskId=" + t.taskId + "&taskName=" + t.name + "&dueDate=" + t.dueDate + "&status=" + t.isDone;
+    console.log(url);
+    req.open("GET", url);
+    req.send();
+    req.onload = function () {
+        var msg = JSON.parse(req.responseText);
+        if (msg['status'] === 200) {
+            render()
+        }
+        else {
+            alert('Duplicate task')
+        }
+    }
     // call a web api to update the database on the server
-    render();
-    // console.log(taskList)
 }
 
 function init() {
@@ -82,13 +118,6 @@ function init() {
 
     // call a web api to retrieve the task list
     // write a function to send a api request
-    // get the JSON
-    // assign it to taskList
-    // render
-
-    // task = new Task("welcome task", new Date("May 30, 2020"), false);
-    // addTask(task);
-    // console.log(task);
 }
 
 init();

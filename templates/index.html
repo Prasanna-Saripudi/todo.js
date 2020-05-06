@@ -5,10 +5,11 @@
 </head>
 
 <body>
+    <button onclick="render()">Display the tasks until</button>
     <ol>
         <div id="todolist"></div>
     </ol>
-    <input type="text" name="taskName" id="taskName">
+    <input type="text" name="taskName" id="taskName" placeholder="Write the task here..">
     <input type="date" id="dueDate" name="dueDate">
     <button onclick="createTask()">Add Task</button>
     <script src="../static/todo-app.js"></script>

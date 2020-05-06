@@ -33,14 +33,16 @@ with app.app_context():
 def index():
     return render_template("index.html")
 
-@app.route("/api/get")
+@app.route("/api/get", methods=["GET"])
 def getList():
     tasks = Task.query.all()
-    if tasksis None:
+    count = Task.query.count()
+    if count==0:
+        print("no tasks")
         return jsonify({
             'message':"No tasks present"
         }), 404
-    taskList = {}
+    taskList = []
     for t in tasks:
         taskDetails = {
             'taskId':t.taskId,
@@ -48,44 +50,65 @@ def getList():
             'dueDate':t.dueDate,
             'status':t.status,
         }
-        taskList[t.taskId]=taskDetails
+        taskList.append(taskDetails)
     return jsonify(taskList), 200
 
-@app.route("/api/add")
+@app.route("/api/add", methods=["GET"])
 def addTask():
     taskId = request.args.get("taskId")
     taskName = request.args.get("taskName")
-    dueDate = request.args.get("dueDate")
-    status = request.args.get("status")
+    dueDate = str(request.args.get("dueDate"))
+    # status = request.args.get("status")
     print(taskId, taskName, dueDate)
-    task = Task(taskId=taskId, taskName=taskName, dueDate=dueDate, status=status)
+    task = Task(taskId=taskId, taskName=taskName, dueDate=dueDate, status=False)
     check = Task.query.filter(and_(Task.taskName==taskName, Task.taskId==taskId)).all()
     if check is None:
         return jsonify({
-            'message':"Duplicate task added"
-        }), 404
+            'message':"Duplicate task added",
+            'status':404,
+        })
     else:
         db.session.add(task)
         db.session.commit()
         return jsonify({
-            'message':"Task added"
-        }), 200
+            'message':"Task added",
+            'status':200,
+        })
 
-@app.route("/api/delete")
+@app.route("/api/delete", methods=["GET"])
 def deleteTask():
     taskId = request.args.get("taskId")
-    taskName = request.args.get("taskName")
-    print(taskId, taskName)
-    check = Task.query.filter(and_(Task.taskName==taskName, Task.taskId==taskId))
+    # print(taskId)
+    check = Task.query.filter(Task.taskId==taskId).first()
     if check is None:
         return jsonify({
-            'message':"No record found to delete"
-        }), 404
+            'message':"No record found to delete",
+            'status':404,
+        })
     else:
-        check.delete()
+        db.session.delete(check)
         db.session.commit()
         return jsonify({
-            'message':"Task deleted"
-        }), 200
+            'message':"Task deleted",
+            'status':200,
+        })
+
+@app.route("/api/updateStatus", methods=["GET"])
+def updateStatus():
+    taskId = request.args.get("taskId")
+    # print(taskId)
+    check = Task.query.filter(Task.taskId==taskId).first()
+    if check is None:
+        return jsonify({
+            'message':"No record found to update",
+            'status':404,
+        })
+    else:
+        check.status=True
+        db.session.commit()
+        return jsonify({
+            'message':"Task updated to completion",
+            'status':200,
+        })
         
 
