@@ -65,6 +65,8 @@ class TaskNameForm extends React.Component {
             id: Date.now(), name: this.state.value,
             dueDate: this.state.date
         };
+        //clearing the input after submit
+        this.setState({ value: '' })
         // add the task object to the task list
         this.props.onAddTask(task);
     }
@@ -79,7 +81,7 @@ class TaskNameForm extends React.Component {
     render() {
         return (
             <form onSubmit={this.handleSubmit}>
-                <input type="text" onChange={this.handleChange} placeholder="Write the task.." />
+                <input type="text" onChange={this.handleChange} placeholder="Write the task.." value={this.state.value} />
                 <input type="date" onChange={() => {
                     this.setState({ date: new Date(event.target.value) })
                 }} />
